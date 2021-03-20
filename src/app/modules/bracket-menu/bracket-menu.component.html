@@ -1,0 +1,10 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-4" *ngFor="let matchup of matchups">
+            <div *ngIf="matchup.teams.length > 1">
+                <h6>{{matchup.teams[0].name}} vs {{matchup.teams[1].name}}</h6>
+                {{matchup.network}}
+            </div>
+        </div>
+    </div>
+</div>
