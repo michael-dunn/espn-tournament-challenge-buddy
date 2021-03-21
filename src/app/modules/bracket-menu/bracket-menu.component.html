@@ -1,8 +1,30 @@
 <div class="container">
     <div class="row">
-        <div class="col-md-4" *ngFor="let matchup of matchups">
-            <div *ngIf="matchup.teams.length > 1">
-                <h6>{{matchup.teams[0].name}} vs {{matchup.teams[1].name}}</h6>
+        <input [(ngModel)]="year" type="text" placeholder="Year"  />
+        <input [(ngModel)]="groupId" type="text" placeholder="Group Id" />
+        <button class="btn" (click)="getData()">Submit</button>
+        <div class="alert" *ngIf="errorMsg">{{errorMsg}}</div>
+    </div>
+    <div class="row" *ngIf="group && group.brackets">
+        <div class="col-md-4" *ngFor="let bracket of group.brackets">
+            {{bracket.name}} - {{bracket.points}}
+        </div>
+    </div>
+    <div class="row" *ngIf="selectedMatchup">
+        <div class="col-md-12 p-2" style="border: 1px black solid;">
+            <h2>Matchup Summary</h2>
+            <div *ngFor="let p of currentPicks">
+                <div *ngIf="p.bracket && p.bracket.name && p.winningTeam && p.winningTeam.name">
+                    {{p.bracket.name}} - {{p.winningTeam.name}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 p-2" *ngFor="let matchup of matchups">
+            <div style="border: 1px black solid;" *ngIf="matchup.teams.length > 1" (click)="previewSummary(matchup)">
+                <h6>({{matchup.teams[0].id}}) {{matchup.teams[0].name}} vs ({{matchup.teams[1].id}})
+                    {{matchup.teams[1].name}}</h6>
                 {{matchup.network}}
             </div>
         </div>
