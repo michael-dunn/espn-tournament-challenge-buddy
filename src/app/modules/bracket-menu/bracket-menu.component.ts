@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { Bracket } from 'src/app/models/bracket';
 import { Group } from 'src/app/models/group';
@@ -17,12 +18,12 @@ import { BracketsService } from '../../services/brackets.service';
 export class BracketMenuComponent implements OnInit {
   groupMatchupSummaries: GroupMatchupSummary[];
   matchups: Matchup[];
-  round64: Matchup[];
-  round32: Matchup[];
-  round16: Matchup[];
-  round8: Matchup[];
-  round4: Matchup[];
-  round2: Matchup[];
+  round64: GroupMatchupSummary[];
+  round32: GroupMatchupSummary[];
+  round16: GroupMatchupSummary[];
+  round8: GroupMatchupSummary[];
+  round4: GroupMatchupSummary[];
+  round2: GroupMatchupSummary[];
   teams: Team[] = [];
   group: Group;
   selectedMatchupSummary: GroupMatchupSummary;
@@ -33,12 +34,15 @@ export class BracketMenuComponent implements OnInit {
   errorMsg: string;
 
   constructor(private bracketsService: BracketsService,
-    private objService: ObjectKeyUtilityService) { }
+    private objService: ObjectKeyUtilityService,
+    private route: ActivatedRoute) { }
 
   ngOnInit(): void {
-    this.groupId = '4046317';
-    this.year = '2021';
-    this.getData();
+    this.route.queryParams.subscribe(params => {
+      this.groupId = params.groupId;
+      this.year = params.year;
+      this.getData();
+    });
   }
 
   previewSummary(m: Matchup) {
@@ -54,44 +58,53 @@ export class BracketMenuComponent implements OnInit {
         this.group = this.objService.MapGroup(data[0].g);
 
         this.matchups = this.objService.MapMatchups(data[1].m);
-        this.round64 = this.matchups.slice(0, 32).map(m => { m.pointPotential = 10; return m; });
-        this.round32 = this.matchups.slice(32, 48).map(m => { m.pointPotential = 20; return m; });
-        this.round16 = this.matchups.slice(48, 56).map(m => { m.pointPotential = 40; return m; });
-        this.round8 = this.matchups.slice(56, 60).map(m => { m.pointPotential = 80; return m; });
-        this.round4 = this.matchups.slice(60, 62).map(m => { m.pointPotential = 160; return m; });
-        this.round2 = this.matchups.slice(62).map(m => { m.pointPotential = 320; return m; });
         this.setupTeams(this.matchups.slice(0, 32));
-
         this.groupMatchupSummaries = this.createGroupMatchupSummaries();
+        this.round64 = this.groupMatchupSummaries.slice(0, 32);
+        this.round32 = this.groupMatchupSummaries.slice(32, 48);
+        this.round16 = this.groupMatchupSummaries.slice(48, 56);
+        this.round8 = this.groupMatchupSummaries.slice(56, 60);
+        this.round4 = this.groupMatchupSummaries.slice(60, 62);
+        this.round2 = this.groupMatchupSummaries.slice(62);
       });
     } else {
       this.errorMsg = "Must provide year and groupId";
     }
   }
   createGroupMatchupSummaries(): GroupMatchupSummary[] {
-    var s = [];
+    var s: GroupMatchupSummary[] = [];
     this.matchups.forEach(m => {
       s.push(this.createSummary(m));
     });
     return s;
   }
 
-  createSummary(m: Matchup) {
+  createSummary(m: Matchup): GroupMatchupSummary {
+    var g = this.group.brackets.map((b) => {
+      var w = this.teams[+b.picksString.split('|')[m.id] - 1];
+      return <Pick>{
+        bracket: b,
+        winningTeam: w,
+        points: this.choseLoser(w.name, m) ? -m.pointPotential : m.pointPotential
+      }
+    });
+    g.forEach(gp => {
+      gp.pointDifferential = g.filter(p => gp.winningTeam != p.winningTeam).map(p => m.pointPotential).reduce((a, b) => a + b, 0);
+    });
     return <GroupMatchupSummary>{
       matchup: m,
-      groupPicks: this.group.brackets.map((b) => {
-        var w = this.teams[+b.picksString.split('|')[m.id] - 1];
-        return <Pick>{
-          bracket: b,
-          winningTeam: w,
-          points: this.choseLoser(w.name,m) ? -m.pointPotential : m.pointPotential
-        }
-      })
+      groupPicks: g
     }
   }
 
   setSelectedUser(b: Bracket) {
+    this.groupMatchupSummaries.forEach(g => g.matchup.highlighted = false);
     this.selectedBracket = b;
+    this.getTopGame(this.round64, b);
+    this.getTopGame(this.round32, b);
+    this.getTopGame(this.round16, b);
+    this.getTopGame(this.round8, b);
+    this.getTopGame(this.round4, b);
   }
 
   setupTeams(matchups: Matchup[]) {
@@ -111,5 +124,17 @@ export class BracketMenuComponent implements OnInit {
 
   teamHasLost(teamChosen: string) {
     return this.teams.find(t => t.name == teamChosen)?.out;
+  }
+
+  getTopGame(summaries: GroupMatchupSummary[], b: Bracket) {
+    var bestVal = -1;
+    var bestMatchupIndex = -1;
+    summaries.map(g => g.groupPicks.find(p => p.bracket == b).pointDifferential).forEach((p,i) => {
+      if (p > bestVal){
+        bestVal = p;
+        bestMatchupIndex = i;
+      }
+    })
+    summaries[bestMatchupIndex].matchup.highlighted = true;
   }
 }

@@ -59,8 +59,19 @@ export class ObjectKeyUtilityService {
         m.teams[0].id = ++counter;
         m.teams[1].id = ++counter;
       }
+      if (i < 32)
+        m.pointPotential = 10;
+      else if (i < 48)
+        m.pointPotential = 20;
+      else if (i < 56)
+        m.pointPotential = 40;
+      else if (i < 60)
+        m.pointPotential = 80;
+      else if (i < 62)
+        m.pointPotential = 160;
+      else if (i == 62)
+        m.pointPotential = 320;
     });
-
     return newM;
   }
 

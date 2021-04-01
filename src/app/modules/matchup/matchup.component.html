@@ -1,4 +1,4 @@
-<div style="border: 1px black solid;" (click)="selectMatchup(matchup)">
+<div [ngClass]="matchup.highlighted ? 'highlighted' : 'matchup-border'" class="p-2" (click)="selectMatchup(matchup)">
     <div *ngIf="matchup.teams.length > 1; else IncompleteMatchup">
         <h6>
             {{matchup.id}}:
@@ -17,7 +17,7 @@
             <h6>No Teams for this matchup yet</h6>
         </div>
         <ng-template #OneTeam>
-{{matchup.id}}: {{matchup.teams[0].name}} vs Not Set
+            {{matchup.id}}: {{matchup.teams[0].name}} vs Not Set
         </ng-template>
     </ng-template>
 </div>

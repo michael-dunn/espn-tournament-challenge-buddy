@@ -6,4 +6,5 @@ export class Matchup {
     network: string;
     pointPotential: number;
     teams: Team[];
+    highlighted: boolean = false;
 }
