@@ -9,11 +9,14 @@ export class ObjectKeyUtilityService {
 
   private readonly matchupsDictionaryArray = [
     ['tv', 'network'],
-    ['o', 'teams']
+    ['o', 'teams'],
+    ['d', 'date'],
+    ['w', 'winnerId']
   ];
   private readonly teamsDictionaryArray = [
     ['n', 'name'],
-    ['s', 'seed']
+    ['s', 'seed'],
+    ['sc', 'score']
   ];
 
   private readonly groupDictionaryArray = [
@@ -29,49 +32,69 @@ export class ObjectKeyUtilityService {
 
   constructor() { }
 
-  public MapMatchups(matchups: any) : Matchup[] {
-    var newM = matchups.map((m) => {
+  public MapMatchups(matchups: any): Matchup[] {
+    var newM: Matchup[] = matchups.map((m) => {
       this.matchupsDictionaryArray.forEach(nameCombo => {
-        this.renameKey(m,nameCombo[0],nameCombo[1]);
+        this.renameKey(m, nameCombo[0], nameCombo[1]);
       });
       m.teams.map((t) => {
         this.teamsDictionaryArray.forEach(nameCombo => {
-          this.renameKey(t,nameCombo[0],nameCombo[1]);
+          this.renameKey(t, nameCombo[0], nameCombo[1]);
         });
         return t;
       });
+      if (this.matchupHasScore(m)) {
+        m.teams[0].won = +m.teams[0].score > +m.teams[1].score;
+        m.teams[1].won = +m.teams[0].score < +m.teams[1].score;
+      }
+      m.date = new Date(m.date);
       return m;
-    }).sort((a,b) => a.id - b.id).slice(0,32);
+    }).sort((a, b) => a.id - b.id);
 
     let counter = 0;
     let counter2 = 0;
-    newM.forEach(m => {
+    newM.forEach((m, i) => {
       m.id = counter2++;
-      if (m.teams.length > 1){
+      if (i < 32 && m.teams.length > 1) {
         m.teams[0].id = ++counter;
         m.teams[1].id = ++counter;
       }
+      if (i < 32)
+        m.pointPotential = 10;
+      else if (i < 48)
+        m.pointPotential = 20;
+      else if (i < 56)
+        m.pointPotential = 40;
+      else if (i < 60)
+        m.pointPotential = 80;
+      else if (i < 62)
+        m.pointPotential = 160;
+      else if (i == 62)
+        m.pointPotential = 320;
     });
-
     return newM;
   }
 
-  public MapGroup(group: any) : Group {
-      this.groupDictionaryArray.forEach(nameCombo => {
-        this.renameKey(group,nameCombo[0],nameCombo[1]);
+  public MapGroup(group: any): Group {
+    this.groupDictionaryArray.forEach(nameCombo => {
+      this.renameKey(group, nameCombo[0], nameCombo[1]);
+    });
+    group.brackets.map((b) => {
+      this.bracketsDictionaryArray.forEach(nameCombo => {
+        this.renameKey(b, nameCombo[0], nameCombo[1]);
       });
-      group.brackets.map((b) => {
-        this.bracketsDictionaryArray.forEach(nameCombo => {
-          this.renameKey(b,nameCombo[0],nameCombo[1]);
-        });
-        return b;
-      });
-      return group;
+      return b;
+    });
+    return group;
   }
 
-  private renameKey(obj, oldName, newName){
+  private renameKey(obj, oldName, newName) {
     obj[newName] = obj[oldName];
     delete obj[oldName];
     return obj;
+  }
+
+  private matchupHasScore(m) {
+    return m.teams.length > 1 && m.teams[0] && m.teams[1] && typeof +m.teams[0].score == 'number' && typeof +m.teams[1].score == 'number';
   }
 }

@@ -1,31 +1,64 @@
 <div class="container">
-    <div class="row">
-        <input [(ngModel)]="year" type="text" placeholder="Year"  />
+    <div class="row" *ngIf="false">
+        <input [(ngModel)]="year" type="text" placeholder="Year" />
         <input [(ngModel)]="groupId" type="text" placeholder="Group Id" />
         <button class="btn" (click)="getData()">Submit</button>
         <div class="alert" *ngIf="errorMsg">{{errorMsg}}</div>
     </div>
-    <div class="row" *ngIf="group && group.brackets">
-        <div class="col-md-4" *ngFor="let bracket of group.brackets">
-            {{bracket.name}} - {{bracket.points}}
+    <div style="border: 1px black solid;" *ngIf="group && group.brackets">
+        <h4>Players</h4>
+        <div class="row">
+            <div class="col-md-4" *ngFor="let bracket of group.brackets" (click)="setSelectedUser(bracket)">
+                {{bracket.name}} - {{bracket.points}}
+            </div>
         </div>
     </div>
-    <div class="row" *ngIf="selectedMatchup">
+    <div class="row" *ngIf="selectedMatchupSummary">
         <div class="col-md-12 p-2" style="border: 1px black solid;">
             <h2>Matchup Summary</h2>
-            <div *ngFor="let p of currentPicks">
-                <div *ngIf="p.bracket && p.bracket.name && p.winningTeam && p.winningTeam.name">
-                    {{p.bracket.name}} - {{p.winningTeam.name}}
+            <div *ngIf="selectedMatchupSummary.matchup.winnerId">
+                <h4>{{selectedMatchupSummary.matchup.teams[0].name}}-{{selectedMatchupSummary.matchup.teams[1].name}}</h4>
+                <h4>{{selectedMatchupSummary.matchup.teams[0].score}}-{{selectedMatchupSummary.matchup.teams[1].score}}</h4>
+            </div>
+            <div *ngFor="let p of selectedMatchupSummary.groupPicks">
+                <div *ngIf="p.bracket && p.bracket.name && p.winningTeam && p.winningTeam.name"
+                    [ngClass]="{'selected': selectedBracket && p.bracket.name == selectedBracket.name}">
+                    <span [ngClass]="{ 'cross-through': choseLoser(p.winningTeam.name, selectedMatchupSummary.matchup) }">{{p.bracket.name}} - {{p.winningTeam.name}} </span>({{p.points}}) Point Differential: {{p.pointDifferential}}
                 </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 p-2" *ngFor="let matchup of matchups">
-            <div style="border: 1px black solid;" *ngIf="matchup.teams.length > 1" (click)="previewSummary(matchup)">
-                <h6>({{matchup.teams[0].id}}) {{matchup.teams[0].name}} vs ({{matchup.teams[1].id}})
-                    {{matchup.teams[1].name}}</h6>
-                {{matchup.network}}
+        <div class="col-md-3">
+            <h5>Round of 64</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round64">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <h5>Round of 32</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round32">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <h5>Sweet Sixteen</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round16">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <h5>Elite Eight</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round8">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
+            </div>
+            <h5>Final Four</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round4">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
+            </div>
+            <h5>Championship</h5>
+            <div class="col-md-12 p-1" *ngFor="let matchupSummary of round2">
+                <app-matchup [matchup]="matchupSummary.matchup" (selectedMatchup)="previewSummary($event)"></app-matchup>
             </div>
         </div>
     </div>

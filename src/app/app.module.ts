@@ -6,11 +6,13 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BracketMenuComponent } from './modules/bracket-menu/bracket-menu.component';
 import { FormsModule } from '@angular/forms';
+import { MatchupComponent } from './modules/matchup/matchup.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    BracketMenuComponent
+    BracketMenuComponent,
+    MatchupComponent
   ],
   imports: [
     BrowserModule,

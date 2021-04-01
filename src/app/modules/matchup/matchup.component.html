@@ -1,0 +1,23 @@
+<div [ngClass]="matchup.highlighted ? 'highlighted' : 'matchup-border'" class="p-2" (click)="selectMatchup(matchup)">
+    <div *ngIf="matchup.teams.length > 1; else IncompleteMatchup">
+        <h6>
+            {{matchup.id}}:
+            <span [ngClass]="{'winner': matchup.teams[0].won}">
+                {{matchup.teams[0].name}}
+            </span>
+            vs
+            <span [ngClass]="{'winner': matchup.teams[1].won}">
+                {{matchup.teams[1].name}}
+            </span>
+        </h6>
+        {{matchup.network}} @ {{matchup.date | date:'short'}}
+    </div>
+    <ng-template #IncompleteMatchup>
+        <div *ngIf="matchup.teams.length == 0; else OneTeam">
+            <h6>No Teams for this matchup yet</h6>
+        </div>
+        <ng-template #OneTeam>
+            {{matchup.id}}: {{matchup.teams[0].name}} vs Not Set
+        </ng-template>
+    </ng-template>
+</div>
